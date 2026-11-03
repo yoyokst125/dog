@@ -131,6 +131,29 @@ body.preview .hint {
   opacity: 0.75;
 }
 
+#menu .swatches {
+  display: grid;
+  grid-template-columns: repeat(4, 22px);
+  gap: 6px;
+  padding: 4px 12px 8px;
+}
+
+#menu .swatch {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 2px solid #3b2a20;
+}
+
+#menu .swatch:hover {
+  outline: 2px solid #f4a259;
+}
+
+#menu .swatch.current {
+  outline: 3px solid #3b2a20;
+  outline-offset: 2px;
+}
+
 #menu hr {
   margin: 4px 0;
   border: 0;

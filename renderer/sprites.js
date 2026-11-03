@@ -8,36 +8,56 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const PALETTE = {
-    k: '#3b2a20', // outline
-    o: '#f4a259', // orange fur
-    d: '#d9803a', // darker stripes
-    w: '#fff4e6', // white belly / muzzle / paws
-    p: '#f7a1b5', // pink ears / nose / blush
-    e: '#2b2b2b', // eyes
-  };
+  // Colour keys used in the sprites:
+  //   k outline, o fur, d stripes, w belly / muzzle / paws, p ears / nose / blush, e eyes
+  const COLORS = [
+    { id: 'orange', name: '橘貓', palette: { k: '#3b2a20', o: '#f4a259', d: '#d9803a', w: '#fff4e6', p: '#f7a1b5', e: '#2b2b2b' } },
+    { id: 'gray', name: '灰貓', palette: { k: '#2e3138', o: '#a4abb6', d: '#838a96', w: '#f2f3f5', p: '#f4a6b8', e: '#2b2b2b' } },
+    { id: 'black', name: '黑貓', palette: { k: '#141317', o: '#3d3b45', d: '#2e2c35', w: '#5c5966', p: '#e98aa0', e: '#f5d547' } },
+    { id: 'white', name: '白貓', palette: { k: '#4a4038', o: '#f7f4ef', d: '#e4ddd3', w: '#ffffff', p: '#f7a1b5', e: '#3b6fd1' } },
+    { id: 'cream', name: '奶油貓', palette: { k: '#4a3622', o: '#f3d9a4', d: '#e2be7f', w: '#fffaf0', p: '#f4a6b8', e: '#2b2b2b' } },
+    { id: 'brown', name: '咖啡貓', palette: { k: '#2a1a10', o: '#8b5e3c', d: '#6e4529', w: '#e9d6c2', p: '#e9a0a8', e: '#2b2b2b' } },
+    { id: 'pink', name: '粉紅貓', palette: { k: '#4a2735', o: '#f6b5c8', d: '#ec93ad', w: '#fff0f5', p: '#ff7fa5', e: '#2b2b2b' } },
+    { id: 'blue', name: '藍貓', palette: { k: '#1f3347', o: '#8fc1e8', d: '#6aa5d6', w: '#eef7ff', p: '#f7a1b5', e: '#2b2b2b' } },
+  ];
+  const PALETTE = COLORS[0].palette;
+
+  function colorById(id) {
+    return COLORS.find((c) => c.id === id) || COLORS[0];
+  }
 
   const WIDTH = 26;
   const HEIGHT = 16;
 
-  // Cat facing right. Rows 0-11: tail, head and body. Legs are added below.
+  // Cat facing right. Rows 0-11: head and body. The tail (columns 0-4,
+  // rows 0-8) comes from TAILS, the legs from LEGS.
   const BASE = [
     '.................k.....k..',
-    '.kk.............kpk...kpk.',
-    'kook...........kopokkkopok',
-    'kodk...........koodododook',
-    'kook...........koooooooook',
-    'kook...........koooeooeook',
-    'kook.kkkkkkkkkkkoooeooeook',
-    '.koooododododooooowwpwwook',
-    '..kkkoooooooooooowwwwwwok.',
+    '................kpk...kpk.',
+    '...............kopokkkopok',
+    '...............koodododook',
+    '...............koooooooook',
+    '...............koooeooeook',
+    '.....kkkkkkkkkkkoooeooeook',
+    '.....ododododooooowwpwwook',
+    '.....oooooooooooowwwwwwok.',
     '....koooooooooooookkkkkkk.',
     '....koooowwwwwwoook.......',
     '....koooowwwwwwoook.......',
   ];
 
-  // Tail tip flicked the other way (used for idle animation).
-  const TAIL_ALT_ROW1 = 'kk..............kpk...kpk.';
+  // Tail poses, 5 columns x 9 rows, joining the body at the bottom.
+  // Played in sequence they make the tail sway.
+  const TAILS = [
+    // 0: upright
+    ['.....', '..kk.', '.kook', '.kodk', '.kook', '.kook', '.kook', '.kooo', '..kkk'],
+    // 1: leaning back
+    ['.....', '.kk..', 'kook.', 'kodk.', '.kook', '.kook', '.kook', '.kooo', '..kkk'],
+    // 2: leaning far back, tip drooping
+    ['.....', '.....', 'kk...', 'kok..', 'kodk.', '.kook', '.kook', '.kooo', '..kkk'],
+    // 3: perked up
+    ['...k.', '..kok', '.kook', '.kodk', '.kook', '.kook', '.kook', '.kooo', '..kkk'],
+  ];
 
   const LEGS = {
     A: [
@@ -64,13 +84,12 @@
   // Build one frame. Options:
   //   legs:  'A' | 'B'               walking pose
   //   eyes:  'open' | 'closed' | 'happy'
-  //   tail:  0 | 1                   tail position
+  //   tail:  0-3                     index into TAILS
   //   lying: true                    curled up (sleeping)
   function build(opts) {
     const o = Object.assign({ legs: 'A', eyes: 'open', tail: 0, lying: false }, opts || {});
-    const rows = BASE.slice();
-
-    if (o.tail === 1) rows[1] = TAIL_ALT_ROW1;
+    const tail = TAILS[o.tail] || TAILS[0];
+    const rows = BASE.map((row, i) => (i < tail.length ? tail[i] + row.slice(5) : row));
 
     if (o.eyes === 'closed') {
       rows[5] = setChar(setChar(rows[5], 19, 'o'), 22, 'o');
@@ -125,5 +144,5 @@
     });
   }
 
-  return { PALETTE, WIDTH, HEIGHT, build, head, HEART, ZZZ, BOWL };
+  return { PALETTE, COLORS, colorById, WIDTH, HEIGHT, TAIL_POSES: TAILS.length, build, head, HEART, ZZZ, BOWL };
 });

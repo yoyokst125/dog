@@ -21,7 +21,7 @@ npm install
 npm run dist
 ```
 
-會產生 `dist/PixelCat-0.1.0-portable.exe`：單一執行檔，不用安裝，點兩下就跑。
+會產生 `dist/PixelCat-0.2.0-portable.exe`：單一執行檔，不用安裝，點兩下就跑。
 在 Linux / macOS 上也能打包 Windows 版，不需要 Wine：圖示和版本資訊由 `scripts/after-pack.js`（用 [resedit](https://github.com/jet2jet/resedit-js)）寫進 exe。
 
 執行檔沒有數位簽章，第一次開啟時 Windows 可能跳出「Windows 已保護您的電腦」，按「其他資訊 → 仍要執行」即可。
@@ -33,8 +33,12 @@ portable 版每次啟動都要先解壓，會慢個幾秒。
 | --- | --- |
 | 左鍵點貓咪 | 喵喵叫、冒愛心，心情 +4 |
 | 拖曳貓咪 | 把牠抓起來，放開會掉回地面 |
-| 右鍵點貓咪 | 選單：看飽足度/心情、餵食、陪玩、睡覺/叫醒、置頂、離開 |
+| 右鍵點貓咪 | 選單：看飽足度/心情、餵食、陪玩、睡覺/叫醒、換顏色、置頂、離開 |
 | 系統匣圖示 | 叫貓咪回來（跑不見時用）、離開 |
+
+### 毛色
+
+右鍵 → 顏色，有 8 種：橘貓、灰貓、黑貓（黃眼睛）、白貓（藍眼睛）、奶油貓、咖啡貓、粉紅貓、藍貓。選好的顏色會記住。
 
 ### 養成
 
@@ -64,7 +68,7 @@ build/
 
 ### 改造貓咪
 
-`renderer/sprites.js` 的 `PALETTE` 決定顏色，換成灰色或黑色就是另一隻貓。
+`renderer/sprites.js` 的 `COLORS` 是毛色清單，照格式多加一筆就會出現在右鍵選單裡。尾巴擺動的姿勢在 `TAILS`，播放順序在 `renderer/app.js` 的 `TAIL_ANIMS`。
 修改像素圖後跑 `npm run check` 確認沒有畫歪，再跑 `npm run icon` 更新圖示。
 
 ## 小提醒

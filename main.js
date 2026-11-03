@@ -127,6 +127,15 @@ ipcMain.on('cat:show-menu', (_e, info) => {
     { label: '餵食', click: send('feed') },
     { label: '陪玩', click: send('play') },
     info.sleeping ? { label: '叫醒', click: send('wake') } : { label: '睡覺', click: send('sleep') },
+    {
+      label: '顏色',
+      submenu: (info.colors || []).map((c) => ({
+        label: c.name,
+        type: 'radio',
+        checked: c.id === info.color,
+        click: send('color:' + c.id),
+      })),
+    },
     { type: 'separator' },
     {
       label: '永遠在最上層',

@@ -1,7 +1,7 @@
 {
   "name": "pixel-desktop-cat",
   "productName": "PixelCat",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A 2D pixel-art cat that lives on your desktop. Click it and it meows.",
   "author": "yoyokst125",
   "main": "main.js",

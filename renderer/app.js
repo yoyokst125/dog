@@ -36,6 +36,7 @@
     hungry: ['肚子餓了喵…', '想吃罐罐…'],
     lonely: ['陪我玩嘛…', '好無聊喵…'],
     sleep: ['呼…', '晚安喵…'],
+    color: ['換新毛色了喵！', '好看嗎喵？'],
   };
 
   // ---- DOM ----------------------------------------------------------------
@@ -51,9 +52,22 @@
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
   // ---- Sprite cache -------------------------------------------------------
+  // Tail poses (indexes into S.TAILS) played in a loop, and seconds per pose.
+  const TAIL_ANIMS = {
+    idle: { seq: [0, 1, 2, 1, 0, 3], step: 0.22 },
+    walk: { seq: [0, 1, 0, 3], step: 0.3 },
+    happy: { seq: [1, 2, 1, 0, 3, 0], step: 0.1 },
+    sleep: { seq: [0, 1], step: 1.4 },
+  };
+  function tailPose(name) {
+    const a = TAIL_ANIMS[name];
+    return a.seq[Math.floor(cat.animT / a.step) % a.seq.length];
+  }
+
+  let color = S.COLORS[0];
   const spriteCache = new Map();
-  function spriteCanvas(rows, flip) {
-    const key = rows.join('|') + (flip ? '<' : '>');
+  function spriteCanvas(rows, flip, palette = color.palette) {
+    const key = rows.join('|') + (flip ? '<' : '>') + Object.values(palette).join('');
     let c = spriteCache.get(key);
     if (c) return c;
     c = document.createElement('canvas');
@@ -64,7 +78,7 @@
       for (let x = 0; x < row.length; x++) {
         const ch = row[x];
         if (ch === '.') continue;
-        g.fillStyle = S.PALETTE[ch];
+        g.fillStyle = palette[ch];
         g.fillRect(flip ? row.length - 1 - x : x, y, 1, 1);
       }
     });
@@ -127,8 +141,19 @@
     api.saveState({
       fullness: Math.round(stats.fullness * 10) / 10,
       mood: Math.round(stats.mood * 10) / 10,
+      color: color.id,
       savedAt: Date.now(),
     });
+  }
+
+  function setColor(id) {
+    const next = S.colorById(id);
+    if (next.id === color.id) return;
+    color = next;
+    if (cat.state === 'sleep') setState('idle', 2);
+    say(pick(LINES.color));
+    addHeart();
+    save();
   }
 
   function pet() {
@@ -183,6 +208,10 @@
   }
 
   api.onMenuAction((action) => {
+    if (action.startsWith('color:')) {
+      setColor(action.slice('color:'.length));
+      return;
+    }
     const actions = { feed, play, sleep, wake };
     if (actions[action]) actions[action]();
   });
@@ -320,28 +349,31 @@
 
   // ---- Draw ---------------------------------------------------------------
   function currentRows() {
-    const tail = Math.floor(cat.animT / 0.7) % 2;
     const blink = cat.blinkT > 0;
     switch (cat.state) {
       case 'walk':
-        return S.build({ legs: Math.floor(cat.animT / 0.18) % 2 ? 'B' : 'A', eyes: blink ? 'closed' : 'open', tail });
+        return S.build({
+          legs: Math.floor(cat.animT / 0.18) % 2 ? 'B' : 'A',
+          eyes: blink ? 'closed' : 'open',
+          tail: tailPose('walk'),
+        });
       case 'happy':
       case 'play':
-        return S.build({ eyes: 'happy', tail: Math.floor(cat.animT / 0.25) % 2 });
+        return S.build({ eyes: 'happy', tail: tailPose('happy') });
       case 'eat':
-        return S.build({ eyes: 'closed', tail });
+        return S.build({ eyes: 'closed', tail: tailPose('happy') });
       case 'sleep':
-        return S.build({ lying: true, eyes: 'closed', tail: Math.floor(cat.animT / 1.6) % 2 });
+        return S.build({ lying: true, eyes: 'closed', tail: tailPose('sleep') });
       case 'drag':
       case 'fall':
-        return S.build({ legs: 'B', eyes: 'open', tail: 1 });
+        return S.build({ legs: 'B', eyes: 'open', tail: 3 });
       default:
-        return S.build({ eyes: blink ? 'closed' : 'open', tail });
+        return S.build({ eyes: blink ? 'closed' : 'open', tail: tailPose('idle') });
     }
   }
 
-  function drawSprite(rows, x, y, scale, flip) {
-    const c = spriteCanvas(rows, flip);
+  function drawSprite(rows, x, y, scale, flip, palette) {
+    const c = spriteCanvas(rows, flip, palette);
     ctx.drawImage(c, Math.round(x), Math.round(y), c.width * scale, c.height * scale);
   }
 
@@ -356,13 +388,13 @@
     if (cat.state === 'eat') {
       const bowlW = S.BOWL[0].length * 3;
       const bx = cat.dir > 0 ? CAT_LEFT + CAT_W - bowlW + 6 : CAT_LEFT - 6;
-      drawSprite(S.BOWL, bx, H - S.BOWL.length * 3 - 2, 3, false);
+      drawSprite(S.BOWL, bx, H - S.BOWL.length * 3 - 2, 3, false, S.PALETTE);
     }
 
     for (const p of particles) {
       ctx.globalAlpha = Math.min(1, p.life);
-      if (p.kind === 'heart') drawSprite(S.HEART, p.x - 10, p.y - 18, 3, false);
-      else drawSprite(S.ZZZ, p.x, p.y - 8, 2, false);
+      if (p.kind === 'heart') drawSprite(S.HEART, p.x - 10, p.y - 18, 3, false, S.PALETTE);
+      else drawSprite(S.ZZZ, p.x, p.y - 8, 2, false, S.PALETTE);
     }
     ctx.globalAlpha = 1;
 
@@ -476,6 +508,8 @@
       fullness: Math.round(stats.fullness),
       mood: Math.round(stats.mood),
       sleeping: cat.state === 'sleep',
+      color: color.id,
+      colors: S.COLORS.map((c) => ({ id: c.id, name: c.name, fur: c.palette.o })),
       x: e.clientX,
       y: e.clientY,
     });
@@ -494,6 +528,7 @@
       stats.fullness = clamp(saved.fullness - away / FULLNESS_DECAY_SEC, 0, 100);
       stats.mood = clamp(saved.mood - away / MOOD_DECAY_SEC, 0, 100);
     }
+    if (saved && saved.color) color = S.colorById(saved.color);
 
     // stand on the ground
     pos.y = groundY();
@@ -561,6 +596,8 @@
           { label: '餵食', action: 'feed' },
           { label: '陪玩', action: 'play' },
           info.sleeping ? { label: '叫醒', action: 'wake' } : { label: '睡覺', action: 'sleep' },
+          null,
+          { label: '顏色', disabled: true },
         ];
         menu.innerHTML = '';
         for (const it of items) {
@@ -571,6 +608,18 @@
           if (it.action) btn.addEventListener('click', () => { hideMenu(); menuCb(it.action); });
           menu.appendChild(btn);
         }
+        const swatches = document.createElement('div');
+        swatches.className = 'swatches';
+        for (const c of info.colors) {
+          const sw = document.createElement('button');
+          sw.className = 'swatch' + (c.id === info.color ? ' current' : '');
+          sw.style.background = c.fur;
+          sw.title = c.name;
+          sw.setAttribute('aria-label', c.name);
+          sw.addEventListener('click', () => { hideMenu(); menuCb('color:' + c.id); });
+          swatches.appendChild(sw);
+        }
+        menu.appendChild(swatches);
         menu.hidden = false;
         menu.style.left = Math.min(info.x, window.innerWidth - menu.offsetWidth - 4) + 'px';
         menu.style.top = Math.min(info.y, window.innerHeight - menu.offsetHeight - 4) + 'px';
