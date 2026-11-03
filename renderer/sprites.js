@@ -183,24 +183,27 @@
     { id: 'white', name: '全白', palette: { k: '#4a4038', w: '#ffffff', o: '#efe8dc', d: '#e2d8c8', g: '#e6ddd0', a: '#cfc3b2', e: '#17120f', p: '#e8798e' } },
   ];
 
-  // Shih Tzu facing right: short coat, round white face, big eyes, floppy
-  // ears, tan back. The tail (columns 3-10, rows 2-6) comes from SHIHTZU_TAILS,
-  // the legs from SHIHTZU_LEGS. Head: columns 14-25; eyes at columns 17-18
-  // and 21-22, rows 4-5; mouth rows 8-10.
+  // Shih Tzu facing right: short coat, round white face, big eyes, tan back,
+  // and small floppy ears beside the head, joined at the top with a small
+  // gap at the tips. The sprite is wider than the cat's to make room for them.
+  // Head: columns 11-30 (face 16-25); eyes at columns 18-19 and 22-23,
+  // rows 4-5; mouth rows 8-10. The tail (columns 3-10, rows 2-6) comes from
+  // SHIHTZU_TAILS, the legs from SHIHTZU_LEGS.
+  const SHIHTZU_WIDTH = 31;
   const SHIHTZU_BASE = [
-    '.................kkkkkk...',
-    '................kwwwwwwk..',
-    '...............kwwwwwwwwk.',
-    '..............kggwwwwwwggk',
-    '..............kggeewweeggk',
-    '..............kggeewweeggk',
-    '.....kkkkkkkkkkggoweewoggk',
-    '....kooooodoookggwwwwwwggk',
-    '...koodoooodookagwkwwkwgak',
-    '...koooooooooookgwwkkwwgk.',
-    '...kowwwwwwwwwwwkkwwwwkk..',
-    '...kwwwwwwwwwwwwwkkkkk....',
-    '...kwwwwwwwwwwwwwk........',
+    '..................kkkkkk.......',
+    '.................kwwwwwwk......',
+    '................kwwwwwwwwk.....',
+    '..............kkkwwwwwwwwkkk...',
+    '.............kggkoeewweeokggk..',
+    '.............kgkkoeewweeokkgk..',
+    '.....kkkkkkkkkakkwwweewwwkkak..',
+    '....kooooodoook.kwwwwwwwwk.k...',
+    '...koodoooodooo.kwwkwwkwwk.....',
+    '...kooooooooooo..kwwkkwwk......',
+    '...kowwwwwwwwwwww.kwwwwk.......',
+    '...kwwwwwwwwwwwwwk.kkkk........',
+    '...kwwwwwwwwwwwwwk.............',
   ];
 
   // Fluffy tail curled on the back; the puff sways left and right.
@@ -215,38 +218,40 @@
 
   // Short white legs.
   const SHIHTZU_LEGS = {
-    A: ['...kwwwkkkkkkwwwk.........', '...kwwwk....kwwwk.........', '...kkkkk....kkkkk.........'],
-    B: ['...kkkwwwkkwwwkkk.........', '.....kwwwkkwwwk...........', '.....kkkkkkkkkk...........'],
+    A: ['...kwwwkkkkkkwwwk..............', '...kwwwk....kwwwk..............', '...kkkkk....kkkkk..............'],
+    B: ['...kkkwwwkkwwwkkk..............', '.....kwwwkkwwwk................', '.....kkkkkkkkkk................'],
   };
 
-  const SHIHTZU_LYING_BOTTOM = '...kkkkkkkkkkkkkkk........';
+  const SHIHTZU_LYING_BOTTOM = '...' + 'k'.repeat(15) + '.'.repeat(SHIHTZU_WIDTH - 18);
+  const SHIHTZU_EMPTY = '.'.repeat(SHIHTZU_WIDTH);
 
   function buildShihTzu(opts) {
     const o = Object.assign({ legs: 'A', eyes: 'open', tail: 0, lying: false }, opts || {});
     const rows = overlay(SHIHTZU_BASE, SHIHTZU_TAILS[o.tail] || SHIHTZU_TAILS[0], 3, 2);
 
+    const eyeCols = [18, 19, 22, 23];
     if (o.eyes === 'closed') {
-      rows[4] = setChars(rows[4], [[17, 'w'], [18, 'w'], [21, 'w'], [22, 'w']]);
-      rows[5] = setChars(rows[5], [[17, 'k'], [18, 'k'], [21, 'k'], [22, 'k']]);
+      rows[4] = setChars(rows[4], eyeCols.map((c) => [c, 'w']));
+      rows[5] = setChars(rows[5], eyeCols.map((c) => [c, 'k']));
     } else if (o.eyes === 'happy') {
       // smiling eyes and tongue out
-      rows[4] = setChars(rows[4], [[17, 'k'], [18, 'k'], [21, 'k'], [22, 'k']]);
-      rows[5] = setChars(rows[5], [[17, 'w'], [18, 'w'], [21, 'w'], [22, 'w']]);
-      rows[8] = setChars(rows[8], [[19, 'p'], [20, 'p']]);
-      rows[9] = setChars(rows[9], [[18, 'k'], [19, 'p'], [20, 'p'], [21, 'k']]);
-      rows[10] = setChars(rows[10], [[18, 'w'], [19, 'k'], [20, 'k'], [21, 'w']]);
+      rows[4] = setChars(rows[4], eyeCols.map((c) => [c, 'k']));
+      rows[5] = setChars(rows[5], eyeCols.map((c) => [c, 'w']));
+      rows[8] = setChars(rows[8], [[20, 'p'], [21, 'p']]);
+      rows[9] = setChars(rows[9], [[19, 'k'], [20, 'p'], [21, 'p'], [22, 'k']]);
+      rows[10] = setChars(rows[10], [[19, 'w'], [20, 'k'], [21, 'k'], [22, 'w']]);
     }
 
-    if (o.lying) return [EMPTY, EMPTY].concat(rows, [SHIHTZU_LYING_BOTTOM]);
+    if (o.lying) return [SHIHTZU_EMPTY, SHIHTZU_EMPTY].concat(rows, [SHIHTZU_LYING_BOTTOM]);
     return rows.concat(SHIHTZU_LEGS[o.legs] || SHIHTZU_LEGS.A);
   }
 
   const shihtzu = {
     id: 'shihtzu',
     name: '西施犬',
-    WIDTH,
+    WIDTH: SHIHTZU_WIDTH,
     HEIGHT,
-    HEAD_COL: 19.5,
+    HEAD_COL: 20.5,
     lyingRows: 2,
     COLORS: SHIHTZU_COLORS,
     colorById: makeColorLookup(SHIHTZU_COLORS),
