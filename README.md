@@ -14,6 +14,19 @@ npm start
 
 想先看看樣子、不想裝 Electron：直接用瀏覽器打開 `renderer/index.html`，會進入「預覽模式」，網頁本身就是桌面。
 
+## 打包成 .exe
+
+```bash
+npm install
+npm run dist
+```
+
+會產生 `dist/PixelCat-0.1.0-portable.exe`：單一執行檔，不用安裝，點兩下就跑。
+在 Linux / macOS 上也能打包 Windows 版，不需要 Wine：圖示和版本資訊由 `scripts/after-pack.js`（用 [resedit](https://github.com/jet2jet/resedit-js)）寫進 exe。
+
+執行檔沒有數位簽章，第一次開啟時 Windows 可能跳出「Windows 已保護您的電腦」，按「其他資訊 → 仍要執行」即可。
+portable 版每次啟動都要先解壓，會慢個幾秒。
+
 ## 怎麼玩
 
 | 操作 | 效果 |
@@ -29,7 +42,7 @@ npm start
 - **心情**：每 45 秒 -1。摸摸 +4、陪玩 +25（會消耗 5 點飽足度）。低於 30 會討拍。
 - 關掉程式後數值會保存，再開時會依離開的時間扣一些（速度是平常的一半）。
 
-存檔位置：Electron 的 userData 資料夾內的 `cat-state.json`（Windows 是 `%APPDATA%\pixel-desktop-cat\`）。
+存檔位置：`%APPDATA%\PixelCat\cat-state.json`（Windows）。
 
 ## 專案結構
 
@@ -43,7 +56,10 @@ renderer/
   app.js             動畫、行為狀態機、養成數值、滑鼠操作
 scripts/
   check-sprites.js   檢查像素圖每列寬度與顏色（npm run check）
-  make-icon.js       由貓咪頭像產生 assets/icon.png、assets/tray.png（npm run icon）
+  make-icon.js       由貓咪頭像產生 assets/ 與 build/ 裡的圖示（npm run icon）
+  after-pack.js      打包時把圖示與版本資訊寫進 PixelCat.exe
+build/
+  icon.ico, icon.png exe 用的圖示
 ```
 
 ### 改造貓咪
@@ -54,4 +70,4 @@ scripts/
 ## 小提醒
 
 - 視窗透明的地方滑鼠可以穿過去點到後面的桌面（Windows、macOS）。Linux 不支援這個功能，貓咪周圍那一小塊會擋住滑鼠。
-- 要做成可直接執行的 `.exe`，可以再加上 [electron-builder](https://www.electron.build/) 打包。
+- 改了程式要重新 `npm run dist` 才會反映到 exe。

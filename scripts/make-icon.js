@@ -1,4 +1,6 @@
-// Generates assets/icon.png (32x32) and assets/tray.png (16x16) from the cat's head sprite.
+// Generates the icons from the cat's head sprite:
+//   assets/icon.png (32x32) and assets/tray.png (16x16) for the running app,
+//   build/icon.png (256x256) and build/icon.ico for the packaged .exe.
 // No dependencies: writes the PNG files by hand.
 const fs = require('fs');
 const path = require('path');
@@ -31,7 +33,7 @@ function hexToRgb(hex) {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
-function writePng(file, size, scale) {
+function pngBuffer(size, scale) {
   const rows = S.head();
   const w = rows[0].length * scale;
   const h = rows.length * scale;
@@ -60,17 +62,55 @@ function writePng(file, size, scale) {
   ihdr.writeUInt32BE(size, 4);
   ihdr[8] = 8; // bit depth
   ihdr[9] = 6; // RGBA
-  const png = Buffer.concat([
+  return Buffer.concat([
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     chunk('IHDR', ihdr),
     chunk('IDAT', zlib.deflateSync(raw)),
     chunk('IEND', Buffer.alloc(0)),
   ]);
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, png);
-  console.log(`wrote ${path.relative(process.cwd(), file)} (${size}x${size})`);
 }
 
-const assets = path.join(__dirname, '..', 'assets');
-writePng(path.join(assets, 'icon.png'), 32, 2);
-writePng(path.join(assets, 'tray.png'), 16, 1);
+function save(file, buf, label) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, buf);
+  console.log(`wrote ${path.relative(process.cwd(), file)} (${label})`);
+}
+
+// Windows .ico holding PNG images (supported since Windows Vista).
+function icoBuffer(images) {
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0); // reserved
+  header.writeUInt16LE(1, 2); // type: icon
+  header.writeUInt16LE(images.length, 4);
+  const entries = [];
+  let offset = 6 + 16 * images.length;
+  for (const { size, png } of images) {
+    const e = Buffer.alloc(16);
+    e[0] = size >= 256 ? 0 : size; // 0 means 256
+    e[1] = size >= 256 ? 0 : size;
+    e[2] = 0; // palette
+    e[3] = 0; // reserved
+    e.writeUInt16LE(1, 4); // colour planes
+    e.writeUInt16LE(32, 6); // bits per pixel
+    e.writeUInt32LE(png.length, 8);
+    e.writeUInt32LE(offset, 12);
+    offset += png.length;
+    entries.push(e);
+  }
+  return Buffer.concat([header, ...entries, ...images.map((i) => i.png)]);
+}
+
+const root = path.join(__dirname, '..');
+// app window + tray (used at run time)
+save(path.join(root, 'assets', 'icon.png'), pngBuffer(32, 2), '32x32');
+save(path.join(root, 'assets', 'tray.png'), pngBuffer(16, 1), '16x16');
+// packaged .exe icon (used by electron-builder)
+const icoSizes = [
+  { size: 256, scale: 20 },
+  { size: 48, scale: 4 },
+  { size: 32, scale: 2 },
+  { size: 16, scale: 1 },
+];
+const icoImages = icoSizes.map(({ size, scale }) => ({ size, png: pngBuffer(size, scale) }));
+save(path.join(root, 'build', 'icon.png'), icoImages[0].png, '256x256');
+save(path.join(root, 'build', 'icon.ico'), icoBuffer(icoImages), icoSizes.map((s) => s.size).join('/'));

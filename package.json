@@ -1,15 +1,41 @@
 {
   "name": "pixel-desktop-cat",
+  "productName": "PixelCat",
   "version": "0.1.0",
   "description": "A 2D pixel-art cat that lives on your desktop. Click it and it meows.",
+  "author": "yoyokst125",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "check": "node scripts/check-sprites.js",
-    "icon": "node scripts/make-icon.js"
+    "icon": "node scripts/make-icon.js",
+    "dist": "npm run icon && electron-builder --win portable --x64"
+  },
+  "build": {
+    "appId": "com.yoyokst125.pixelcat",
+    "productName": "PixelCat",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**",
+      "assets/**"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "afterPack": "scripts/after-pack.js",
+    "win": {
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "PixelCat-${version}-portable.exe"
+    }
   },
   "devDependencies": {
-    "electron": "^44.10.1"
+    "electron": "^44.10.1",
+    "electron-builder": "^26.17.0",
+    "resedit": "^3.1.0"
   },
   "license": "MIT"
 }
