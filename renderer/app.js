@@ -1,20 +1,24 @@
-// Desktop cat: animation, behaviour, care stats and input.
-// Runs inside the Electron window (window.catApi from preload.js) or, without
+// Desktop pet: animation, behaviour, care stats and input.
+// Runs inside an Electron window (window.catApi from preload.js) or, without
 // Electron, as a browser preview where the page itself plays the desktop.
+// Which pet to show comes from the page URL: index.html?pet=cat | shihtzu
 (() => {
   'use strict';
 
-  const S = window.CatSprites;
+  const S = window.PetSprites;
+  const params = new URLSearchParams(location.search);
+  const PET = S.species[params.get('pet')] || S.species.cat;
+  document.title = PET.name;
 
   // ---- Layout -------------------------------------------------------------
   const W = 220; // window / canvas size (must match main.js)
   const H = 170;
   const SCALE = 4;
-  const CAT_W = S.WIDTH * SCALE;
-  const CAT_H = S.HEIGHT * SCALE;
+  const CAT_W = PET.WIDTH * SCALE;
+  const CAT_H = PET.HEIGHT * SCALE;
   const CAT_LEFT = Math.round((W - CAT_W) / 2);
   const CAT_TOP = H - CAT_H - 2;
-  const HEAD_COL = 20.5; // head centre column when facing right
+  const HEAD_COL = PET.HEAD_COL; // head centre column when facing right
 
   // ---- Tuning -------------------------------------------------------------
   const WALK_SPEED = 40; // px per second
@@ -24,20 +28,7 @@
   const MOOD_DECAY_SEC = 45;
   const OFFLINE_DECAY_FACTOR = 0.5; // decays slower while the app is closed
 
-  const LINES = {
-    hello: ['喵～', '我來了喵！'],
-    pet: ['喵～', '喵喵！', '喵？', '呼嚕呼嚕…', '喵嗚～', '再摸一下喵'],
-    wake: ['喵…？', '被吵醒了喵…'],
-    feed: ['開動了喵～', '好吃喵！'],
-    full: ['吃不下了喵…'],
-    play: ['好好玩喵！', '再來再來！'],
-    tired: ['沒力氣玩了喵…'],
-    land: ['喵！', '嚇死喵了！'],
-    hungry: ['肚子餓了喵…', '想吃罐罐…'],
-    lonely: ['陪我玩嘛…', '好無聊喵…'],
-    sleep: ['呼…', '晚安喵…'],
-    color: ['換新毛色了喵！', '好看嗎喵？'],
-  };
+  const LINES = PET.lines;
 
   // ---- DOM ----------------------------------------------------------------
   const canvas = document.getElementById('cat');
@@ -52,19 +43,13 @@
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
   // ---- Sprite cache -------------------------------------------------------
-  // Tail poses (indexes into S.TAILS) played in a loop, and seconds per pose.
-  const TAIL_ANIMS = {
-    idle: { seq: [0, 1, 2, 1, 0, 3], step: 0.22 },
-    walk: { seq: [0, 1, 0, 3], step: 0.3 },
-    happy: { seq: [1, 2, 1, 0, 3, 0], step: 0.1 },
-    sleep: { seq: [0, 1], step: 1.4 },
-  };
+  // Tail poses played in a loop (each pet defines its own), seconds per pose.
   function tailPose(name) {
-    const a = TAIL_ANIMS[name];
+    const a = PET.tailAnims[name];
     return a.seq[Math.floor(cat.animT / a.step) % a.seq.length];
   }
 
-  let color = S.COLORS[0];
+  let color = PET.COLORS[0];
   const spriteCache = new Map();
   function spriteCanvas(rows, flip, palette = color.palette) {
     const key = rows.join('|') + (flip ? '<' : '>') + Object.values(palette).join('');
@@ -98,7 +83,7 @@
     vy: 0,
     blinkIn: rand(2, 5),
     blinkT: 0,
-    rows: S.build(),
+    rows: PET.build(),
   };
   const pos = { x: 0, y: 0 };
   let area = { x: 0, y: 0, width: 1280, height: 720 };
@@ -147,7 +132,7 @@
   }
 
   function setColor(id) {
-    const next = S.colorById(id);
+    const next = PET.colorById(id);
     if (next.id === color.id) return;
     color = next;
     if (cat.state === 'sleep') setState('idle', 2);
@@ -227,12 +212,12 @@
 
   // ---- Speech bubble & particles -----------------------------------------
   function headX() {
-    const col = cat.dir > 0 ? HEAD_COL : S.WIDTH - HEAD_COL;
+    const col = cat.dir > 0 ? HEAD_COL : PET.WIDTH - HEAD_COL;
     return CAT_LEFT + col * SCALE;
   }
 
   function headTopY() {
-    const lyingOffset = cat.state === 'sleep' ? 3 * SCALE : 0;
+    const lyingOffset = cat.state === 'sleep' ? PET.lyingRows * SCALE : 0;
     return CAT_TOP + cat.yOff + lyingOffset;
   }
 
@@ -352,23 +337,23 @@
     const blink = cat.blinkT > 0;
     switch (cat.state) {
       case 'walk':
-        return S.build({
+        return PET.build({
           legs: Math.floor(cat.animT / 0.18) % 2 ? 'B' : 'A',
           eyes: blink ? 'closed' : 'open',
           tail: tailPose('walk'),
         });
       case 'happy':
       case 'play':
-        return S.build({ eyes: 'happy', tail: tailPose('happy') });
+        return PET.build({ eyes: 'happy', tail: tailPose('happy') });
       case 'eat':
-        return S.build({ eyes: 'closed', tail: tailPose('happy') });
+        return PET.build({ eyes: 'closed', tail: tailPose('happy') });
       case 'sleep':
-        return S.build({ lying: true, eyes: 'closed', tail: tailPose('sleep') });
+        return PET.build({ lying: true, eyes: 'closed', tail: tailPose('sleep') });
       case 'drag':
       case 'fall':
-        return S.build({ legs: 'B', eyes: 'open', tail: 3 });
+        return PET.build({ legs: 'B', eyes: 'open', tail: tailPose('drag') });
       default:
-        return S.build({ eyes: blink ? 'closed' : 'open', tail: tailPose('idle') });
+        return PET.build({ eyes: blink ? 'closed' : 'open', tail: tailPose('idle') });
     }
   }
 
@@ -417,8 +402,8 @@
       for (let dx = -1; dx <= 1; dx++) {
         const row = row0 + dy;
         let col = col0 + dx;
-        if (row < 0 || row >= cat.rows.length || col < 0 || col >= S.WIDTH) continue;
-        if (flip) col = S.WIDTH - 1 - col;
+        if (row < 0 || row >= cat.rows.length || col < 0 || col >= PET.WIDTH) continue;
+        if (flip) col = PET.WIDTH - 1 - col;
         if (cat.rows[row][col] !== '.') return true;
       }
     }
@@ -505,11 +490,12 @@
     const p = localPoint(e);
     if (!hitCat(p.x, p.y)) return;
     api.showMenu({
+      name: PET.name,
       fullness: Math.round(stats.fullness),
       mood: Math.round(stats.mood),
       sleeping: cat.state === 'sleep',
       color: color.id,
-      colors: S.COLORS.map((c) => ({ id: c.id, name: c.name, fur: c.palette.o })),
+      colors: PET.COLORS.map((c) => ({ id: c.id, name: c.name, fur: c.palette.o })),
       x: e.clientX,
       y: e.clientY,
     });
@@ -528,7 +514,7 @@
       stats.fullness = clamp(saved.fullness - away / FULLNESS_DECAY_SEC, 0, 100);
       stats.mood = clamp(saved.mood - away / MOOD_DECAY_SEC, 0, 100);
     }
-    if (saved && saved.color) color = S.colorById(saved.color);
+    if (saved && saved.color) color = PET.colorById(saved.color);
 
     // stand on the ground
     pos.y = groundY();
@@ -562,7 +548,14 @@
     document.body.classList.add('preview');
     const hint = document.createElement('div');
     hint.className = 'hint';
-    hint.textContent = '預覽模式：點貓咪會喵喵叫，拖曳可以抓起來，右鍵打開選單。';
+    hint.textContent = `預覽模式（${PET.name}）：點牠會叫，拖曳可以抓起來，右鍵打開選單。換一隻：`;
+    for (const other of Object.values(S.species)) {
+      if (other.id === PET.id) continue;
+      const a = document.createElement('a');
+      a.href = '?pet=' + other.id;
+      a.textContent = other.name;
+      hint.appendChild(a);
+    }
     document.body.appendChild(hint);
 
     const appEl = document.getElementById('app');
@@ -583,10 +576,10 @@
       setPos: (x, y) => { px = x; py = y; place(); },
       setIgnoreMouse: () => {},
       loadState: async () => {
-        try { return JSON.parse(localStorage.getItem('cat-state') || 'null'); } catch (_) { return null; }
+        try { return JSON.parse(localStorage.getItem(PET.id + '-state') || 'null'); } catch (_) { return null; }
       },
       saveState: (s) => {
-        try { localStorage.setItem('cat-state', JSON.stringify(s)); } catch (_) { /* ignore */ }
+        try { localStorage.setItem(PET.id + '-state', JSON.stringify(s)); } catch (_) { /* ignore */ }
       },
       showMenu: (info) => {
         const items = [

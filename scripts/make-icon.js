@@ -34,7 +34,7 @@ function hexToRgb(hex) {
 }
 
 function pngBuffer(size, scale) {
-  const rows = S.head();
+  const rows = S.species.cat.head();
   const w = rows[0].length * scale;
   const h = rows.length * scale;
   const ox = Math.floor((size - w) / 2);
@@ -48,7 +48,7 @@ function pngBuffer(size, scale) {
       const sy = Math.floor((y - oy) / scale);
       const ch = x >= ox && y >= oy && sy < rows.length && sx < rows[0].length ? rows[sy][sx] : '.';
       if (ch === '.') continue;
-      const [r, g, b] = hexToRgb(S.PALETTE[ch]);
+      const [r, g, b] = hexToRgb(S.species.cat.COLORS[0].palette[ch]);
       const i = y * (size * 4 + 1) + 1 + x * 4;
       raw[i] = r;
       raw[i + 1] = g;

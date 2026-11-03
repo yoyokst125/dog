@@ -94,6 +94,12 @@ body.preview .hint {
   font-size: 14px;
 }
 
+body.preview .hint a {
+  margin-left: 6px;
+  color: #b4441f;
+  font-weight: bold;
+}
+
 #menu {
   position: fixed;
   min-width: 150px;
