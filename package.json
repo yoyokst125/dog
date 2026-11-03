@@ -1,7 +1,7 @@
 {
   "name": "pixel-desktop-cat",
   "productName": "PixelCat",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "2D pixel-art desktop pets (a cat and a Shih Tzu). Click them and they talk.",
   "author": "yoyokst125",
   "main": "main.js",

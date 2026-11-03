@@ -21,7 +21,7 @@ npm install
 npm run dist
 ```
 
-會產生 `dist/PixelCat-0.3.2-portable.exe`：單一執行檔，不用安裝，點兩下就跑。
+會產生 `dist/PixelCat-0.3.3-portable.exe`：單一執行檔，不用安裝，點兩下就跑。
 在 Linux / macOS 上也能打包 Windows 版，不需要 Wine：圖示和版本資訊由 `scripts/after-pack.js`（用 [resedit](https://github.com/jet2jet/resedit-js)）寫進 exe。
 
 執行檔沒有數位簽章，第一次開啟時 Windows 可能跳出「Windows 已保護您的電腦」，按「其他資訊 → 仍要執行」即可。

@@ -114,7 +114,7 @@
       // ^ ^ eyes and pink cheeks
       rows[5] = setChars(rows[5], [[19, 'k'], [22, 'k']]);
       rows[6] = setChars(rows[6], [[18, 'k'], [19, 'o'], [20, 'k'], [21, 'k'], [22, 'o'], [23, 'k']]);
-      rows[7] = setChars(rows[7], [[17, 'p'], [24, 'p']]);
+      rows[7] = setChars(rows[7], [[16, 'p'], [25, 'p']]);
     }
 
     if (o.lying) return [EMPTY, EMPTY, EMPTY].concat(rows, [CAT_LOAF_BOTTOM]);
@@ -172,37 +172,40 @@
   // ======================================================================
   // Shih Tzu (short puppy cut)
   // Colour keys: k outline, w white coat / face, o back / tail / eye patches,
-  //              d darker coat, g ears, a darker ear tips, e eyes and nose, p tongue
+  //              d darker coat, g ears, a darker ear tips, e pupils, h eye whites,
+  //              p nose / mouth / blush
   // ======================================================================
   const SHIHTZU_COLORS = [
-    { id: 'cream', name: '米白灰耳', palette: { k: '#3a2f28', w: '#fbf7f0', o: '#d9bf98', d: '#c2a276', g: '#a3a1a6', a: '#77747c', e: '#17120f', p: '#e8798e' } },
-    { id: 'gold', name: '金白', palette: { k: '#3b2a20', w: '#fffaf0', o: '#e8b66a', d: '#c98f45', g: '#c98f45', a: '#9e6c30', e: '#17120f', p: '#e8798e' } },
-    { id: 'brown', name: '棕白', palette: { k: '#2a1a10', w: '#fbf4ea', o: '#9a6a43', d: '#7a4f2e', g: '#7a4f2e', a: '#5a3820', e: '#17120f', p: '#e8798e' } },
-    { id: 'black', name: '黑白', palette: { k: '#141317', w: '#f7f7f7', o: '#3d3a44', d: '#2b2930', g: '#3d3a44', a: '#24222a', e: '#0d0c0f', p: '#e8798e' } },
-    { id: 'silver', name: '銀白', palette: { k: '#2e3138', w: '#ffffff', o: '#c3c7cf', d: '#a3a8b3', g: '#8e939e', a: '#6b707b', e: '#17120f', p: '#e8798e' } },
-    { id: 'white', name: '全白', palette: { k: '#4a4038', w: '#ffffff', o: '#efe8dc', d: '#e2d8c8', g: '#e6ddd0', a: '#cfc3b2', e: '#17120f', p: '#e8798e' } },
+    { id: 'cream', name: '米白灰耳', palette: { k: '#3a2f28', w: '#fbf7f0', o: '#d9bf98', d: '#c2a276', g: '#a3a1a6', a: '#77747c', e: '#17120f', p: '#e8798e', h: '#ffffff' } },
+    { id: 'gold', name: '金白', palette: { k: '#3b2a20', w: '#fffaf0', o: '#e8b66a', d: '#c98f45', g: '#c98f45', a: '#9e6c30', e: '#17120f', p: '#e8798e', h: '#ffffff' } },
+    { id: 'brown', name: '棕白', palette: { k: '#2a1a10', w: '#fbf4ea', o: '#9a6a43', d: '#7a4f2e', g: '#7a4f2e', a: '#5a3820', e: '#17120f', p: '#e8798e', h: '#ffffff' } },
+    { id: 'black', name: '黑白', palette: { k: '#141317', w: '#f7f7f7', o: '#3d3a44', d: '#2b2930', g: '#3d3a44', a: '#24222a', e: '#0d0c0f', p: '#e8798e', h: '#ffffff' } },
+    { id: 'silver', name: '銀白', palette: { k: '#2e3138', w: '#ffffff', o: '#c3c7cf', d: '#a3a8b3', g: '#8e939e', a: '#6b707b', e: '#17120f', p: '#e8798e', h: '#ffffff' } },
+    { id: 'white', name: '全白', palette: { k: '#4a4038', w: '#ffffff', o: '#efe8dc', d: '#e2d8c8', g: '#e6ddd0', a: '#cfc3b2', e: '#17120f', p: '#e8798e', h: '#ffffff' } },
   ];
 
   // Shih Tzu facing right: short coat, round white face, big eyes, tan back,
   // and small floppy ears beside the head, joined at the top with a small
   // gap at the tips. The sprite is wider than the cat's to make room for them.
-  // Head: columns 11-30 (face 16-25); eyes at columns 18-19 and 22-23,
-  // rows 4-5; mouth rows 8-10. The tail (columns 3-10, rows 2-6) comes from
-  // SHIHTZU_TAILS, the legs from SHIHTZU_LEGS.
+  // Head: columns 10-30 (face 15-26). Eyes on rows 4-5: white at columns 17
+  // and 22, pupils at 18-19 and 23-24 (looking forward), framed by tan fur
+  // (rows 3-6) with a white stripe down the middle of the face; small pink nose and mouth (same style as the cat) on row 7.
+  // The tail (columns 3-10, rows 2-6) comes from SHIHTZU_TAILS, the legs
+  // from SHIHTZU_LEGS.
   const SHIHTZU_WIDTH = 31;
   const SHIHTZU_BASE = [
     '..................kkkkkk.......',
     '.................kwwwwwwk......',
-    '................kwwwwwwwwk.....',
     '..............kkkwwwwwwwwkkk...',
-    '.............kggkoeewweeokggk..',
-    '.............kgkkoeewweeokkgk..',
-    '.....kkkkkkkkkakkwwweewwwkkak..',
-    '....kooooodoook.kwwwwwwwwk.k...',
-    '...koodoooodooo.kwwkwwkwwk.....',
-    '...kooooooooooo..kwwkkwwk......',
-    '...kowwwwwwwwwwww.kwwwwk.......',
-    '...kwwwwwwwwwwwwwk.kkkk........',
+    '.............kgkwooowwooowkgk..',
+    '............kggkoheewwheeokggk.',
+    '............kakkoheewwheeokkak.',
+    '.....kkkkkkkkkkkwooowwooowk.k..',
+    '....kooooodooookwwwwppwwwwk....',
+    '...koodoooodoookwwwwwwwwwwk....',
+    '...kooooooooooookwwwwwwwwk.....',
+    '...kowwwwwwwwwwwwkwwwwwwk......',
+    '...kwwwwwwwwwwwwwkkkkkkk.......',
     '...kwwwwwwwwwwwwwk.............',
   ];
 
@@ -229,17 +232,15 @@
     const o = Object.assign({ legs: 'A', eyes: 'open', tail: 0, lying: false }, opts || {});
     const rows = overlay(SHIHTZU_BASE, SHIHTZU_TAILS[o.tail] || SHIHTZU_TAILS[0], 3, 2);
 
-    const eyeCols = [18, 19, 22, 23];
+    const eyeCols = [17, 18, 19, 22, 23, 24];
     if (o.eyes === 'closed') {
       rows[4] = setChars(rows[4], eyeCols.map((c) => [c, 'w']));
       rows[5] = setChars(rows[5], eyeCols.map((c) => [c, 'k']));
     } else if (o.eyes === 'happy') {
-      // smiling eyes and tongue out
+      // smiling eyes and pink cheeks, like the cat
       rows[4] = setChars(rows[4], eyeCols.map((c) => [c, 'k']));
       rows[5] = setChars(rows[5], eyeCols.map((c) => [c, 'w']));
-      rows[8] = setChars(rows[8], [[20, 'p'], [21, 'p']]);
-      rows[9] = setChars(rows[9], [[19, 'k'], [20, 'p'], [21, 'p'], [22, 'k']]);
-      rows[10] = setChars(rows[10], [[19, 'w'], [20, 'k'], [21, 'k'], [22, 'w']]);
+      rows[7] = setChars(rows[7], [[16, 'p'], [25, 'p']]);
     }
 
     if (o.lying) return [SHIHTZU_EMPTY, SHIHTZU_EMPTY].concat(rows, [SHIHTZU_LYING_BOTTOM]);
