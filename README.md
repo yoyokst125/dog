@@ -21,7 +21,7 @@ npm install
 npm run dist
 ```
 
-會產生 `dist/PixelCat-0.3.0-portable.exe`：單一執行檔，不用安裝，點兩下就跑。
+會產生 `dist/PixelCat-0.3.1-portable.exe`：單一執行檔，不用安裝，點兩下就跑。
 在 Linux / macOS 上也能打包 Windows 版，不需要 Wine：圖示和版本資訊由 `scripts/after-pack.js`（用 [resedit](https://github.com/jet2jet/resedit-js)）寫進 exe。
 
 執行檔沒有數位簽章，第一次開啟時 Windows 可能跳出「Windows 已保護您的電腦」，按「其他資訊 → 仍要執行」即可。
@@ -45,7 +45,7 @@ portable 版每次啟動都要先解壓，會慢個幾秒。
 右鍵 → 顏色，選好的顏色會記住。
 
 - **貓咪** 8 種：橘貓、灰貓、黑貓（黃眼睛）、白貓（藍眼睛）、奶油貓、咖啡貓、粉紅貓、藍貓
-- **西施犬** 6 種：金白、棕白、黑白、銀白、奶油、紅棕（每種配不同顏色的頭頂蝴蝶結）
+- **西施犬**（短毛造型）6 種：米白灰耳（預設）、金白、棕白、黑白、銀白、全白
 
 ### 養成
 
